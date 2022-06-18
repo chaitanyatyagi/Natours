@@ -1,6 +1,6 @@
 const express = require('express');
 const tourController = require('../controllers/tourController');
-
+const authController = require('../controllers/authController');
 const router = express.Router();
 
 // router.param('id', tourController.checkID);
@@ -14,7 +14,7 @@ router
 
 router
   .route('/')
-  .get(tourController.getAllTours)
+  .get(authController.protect, tourController.getAllTours)
   // .post(tourController.checkBody, tourController.createTour);
   .post(tourController.createTour);
 
@@ -22,6 +22,14 @@ router
   .route('/:id')
   .get(tourController.getTour)
   .patch(tourController.updateTour)
-  .delete(tourController.deleteTour);
+  // AUTHORIZATION
+  // 1st middleware -> only properly loggedin users with verification of tokens are allowed to reach database !!
+  // 2nd middleware -> we are basically giving access to certain users , so that only they can delete certain tours not everyone !!
+  // 3rd middleware -> deletion of tour !!
+  .delete(
+    authController.protect,
+    authController.restrictTo('admin', 'lead-guide'),
+    tourController.deleteTour
+  );
 
 module.exports = router;
