@@ -18,8 +18,11 @@ const userSchema = new mongoose.Schema({
   profile: String,
   role: {
     type: String,
-    enum: ['user', 'guide', 'lead-guide', 'admin'],
-    default: 'user',
+    enum: {
+      values: ['Guide', 'Lead-guide', 'Admin', 'User'],
+      error: 'oops !!',
+    },
+    default: 'User',
   },
   password: {
     type: String,
