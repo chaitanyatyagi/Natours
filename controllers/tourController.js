@@ -92,7 +92,7 @@ exports.aliasTopTours = (req, res, next) => {
 // }
 
 exports.getAllTours = catchAsync(async (req, res, next) => {
-  console.log(req.requestTime);
+  // console.log(req.requestTime);
 
   // try {
   // BUILD QUERY
@@ -204,7 +204,14 @@ exports.getTour = catchAsync(async (req, res, next) => {
   //   });
   // }
   // try {
+  // populating our query, to get entire user guide data
+  // const tour = await Tour.findById(req.params.id).populate({
+  //   path: 'guides',
+  //   select: '-__v',
+  // });
+  // we are not doing it here coz it's still not visible in get all tours, refer to query middleware
   const tour = await Tour.findById(req.params.id);
+  // select : this option won't display those things in our user which are subtracted in select
   // Tour.findById(re.params.id) == Tour.findOne({_id:req.params.id})
 
   if (!tour) {

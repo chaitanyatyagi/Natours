@@ -249,7 +249,11 @@ const AppError = require('./utils/appError');
 const globalErrorHandler = require('./controllers/errorController');
 const tourRouter = require('./Routes/tourRoutes');
 const userRouter = require('./Routes/userRoutes');
-
+const rateLimit = require('express-rate-limit');
+const helmet = require('helmet');
+const mongoSanitize = require('express-mongo-sanitize');
+const xss = require('xss-clean');
+const hpp = require('hpp');
 // 2) MIDDLEWARE
 // use of enviornmental variables
 
@@ -258,8 +262,42 @@ const userRouter = require('./Routes/userRoutes');
 //   app.use(morgan('dev'));
 // }
 
-app.use(morgan('dev'));
+// Body parser, reading data from body into req.body
 app.use(express.json());
+
+// Data Sanitization against NoSQL query injection
+app.use(mongoSanitize());
+// Data Sanitization against XSS
+app.use(xss());
+
+// Prevent Parameter pollution
+app.use(
+  hpp({
+    whitelist: [
+      'duration',
+      'ratingsQuantity',
+      'ratingsAverage',
+      'maxGroupSize',
+      'difficulty',
+      'price',
+    ],
+  })
+);
+
+// Development Logging
+app.use(morgan('dev'));
+
+// These middlewares are for securit !!
+// Set HTTP header secure
+app.use(helmet());
+
+// Limit requests from same IP
+const limiter = rateLimit({
+  max: 100,
+  window: 60 * 60 * 1000,
+  message: 'Too many requests from this IP, please try again later in an hour!',
+});
+app.use('/api', limiter);
 
 // how to access file from our computer/file system ----> built-in express middleware
 app.use(express.static(`${__dirname}/public`));

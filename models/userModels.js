@@ -16,14 +16,6 @@ const userSchema = new mongoose.Schema({
     validate: [validator.isEmail, 'Please provide valid email address!'],
   },
   profile: String,
-  role: {
-    type: String,
-    enum: {
-      values: ['Guide', 'Lead-guide', 'Admin', 'User'],
-      error: 'oops !!',
-    },
-    default: 'User',
-  },
   password: {
     type: String,
     required: [true, 'Please provide your password'],
@@ -43,12 +35,23 @@ const userSchema = new mongoose.Schema({
       message: 'Passwords are not same !',
     },
   },
+  role: {
+    type: String,
+    enum: ['user', 'guide', 'leadguide', 'admin'],
+    message: "This role doesn't exists !!",
+    default: 'admin',
+  },
   passwordChangedAt: Date,
   passwordResetToken: String,
   passwordResetExpires: Date,
+  active: {
+    type: Boolean,
+    default: true,
+    select: false,
+  },
 });
 userSchema.pre('save', async function (next) {
-  // this refer to current document, isModifed refers to whether the data has been changed/modified or not, data is refereed by key that we put inside isModified as argument this.isModified--->('password')<---
+  // this refer to current document, isModifed refers to whether the data has been changed/modified or not, data is referred by key that we put inside isModified as argument this.isModified--->('password')<---
   if (!this.isModified('password')) return next();
 
   // encrypting our password
@@ -95,6 +98,28 @@ userSchema.methods.createPasswordResetToken = function () {
   // we need to return this plain (non-encrypted token) as we need it in our code since we need to send it in our email
   return resetToken;
 };
+
+// this middleware will tell us about the password changed at.
+// userSchema.pre('save', function (next) {
+//   if (!this.isModified('password') || this.isNew) return next();
+
+//   this.passwordChangedAt = Date.now() - 1000;
+//   next();
+// });
+
+// Query Middleware for deleting the current user response, this way we will deactivate its account
+userSchema.pre(/^find/, function (next) {
+  // this (/^find/) tells that it will work for all such queries where we use User.find...
+
+  // this points to the current query
+
+  // this.find({ active: true });
+  // this way we will get only those users with active set as true
+
+  this.find({ active: { $ne: false } });
+  // we are using this coz for above method we are getting some issues due to which no user is visible
+  next();
+});
 
 const User = mongoose.model('User', userSchema);
 module.exports = User;

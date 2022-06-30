@@ -14,7 +14,11 @@ router
 
 router
   .route('/')
-  .get(authController.protect, tourController.getAllTours)
+  .get(
+    authController.protect,
+    authController.restrictTo('admin'),
+    tourController.getAllTours
+  )
   // .post(tourController.checkBody, tourController.createTour);
   .post(tourController.createTour);
 

@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const slugify = require('slugify');
 const validator = require('validator');
+// const User = require('./userModels');
 
 const tourSchema = new mongoose.Schema(
   {
@@ -80,6 +81,41 @@ const tourSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    // This is for location
+    startLocation: {
+      // GeoJSON for geospatial data
+      type: {
+        type: String,
+        default: 'Point',
+        enum: ['Point'],
+      },
+      coordinates: [Number],
+      address: String,
+      description: String,
+    },
+    // this is how we create embedded document
+    locations: [
+      {
+        type: {
+          type: String,
+          default: 'Point',
+          enum: ['Point'],
+        },
+        coordinates: [Number],
+        address: String,
+        description: String,
+        day: Number,
+      },
+    ],
+    // This is for embedding user guides in tour
+    // guides: Array,
+    // This is for child referencinng our user guide into tour
+    guides: [
+      {
+        type: mongoose.Schema.ObjectId,
+        ref: 'User',
+      },
+    ],
   },
   // this way we are allowing are virtuals to be displayed
   {
@@ -100,6 +136,21 @@ tourSchema.pre('save', function (next) {
   next();
 });
 
+// middleware to get entire user just from user guide id in our tour models
+// 1) Embedding
+// tourSchema.pre('save', async function (next) {
+//   const guidesPromises = this.guides.map(async (id) => await User.findById(id));
+
+//   // above line will return promise therefore our const is an array of user doc promises, now our below line will simply update our guides , instead of storing id now it will store entire user document of that particular id
+
+//   // Promise.all() -->  Promise. all() method takes an iterable of promises as an input, and returns a single Promise that resolves to an array of the results of the input promises.
+
+//   this.guides = await Promise.all(guidesPromises);
+//   next();
+// });
+
+// 2) Child Referencing
+
 // this doc refers to ----> document just saved in the database
 // tourSchema.post('save', function (doc, next) {
 //   console.log(doc);
@@ -115,6 +166,14 @@ tourSchema.pre(/^find/, function (next) {
   // tourSchema.pre('find', function (next) {
   this.find({ secretTour: { $ne: true } });
   this.start = Date.now();
+  next();
+});
+
+tourSchema.pre(/^find/, function (next) {
+  this.populate({
+    path: 'guides',
+    select: '-__v',
+  });
   next();
 });
 
