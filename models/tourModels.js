@@ -37,6 +37,7 @@ const tourSchema = new mongoose.Schema(
       default: 4.5,
       min: [0.1, 'Min = 1'],
       max: [5.0, 'Max = 5.0'],
+      set: (val) => Math.round(val * 10) / 10,
     },
     ratingQuantity: {
       type: Number,
@@ -124,9 +125,24 @@ const tourSchema = new mongoose.Schema(
   }
 );
 
+// single index
+// tourSchema.index({ price: 1 });
+
+// compound index
+tourSchema.index({ price: 1, ratingsAverage: -1 });
+tourSchema.index({ slug: 1 });
+tourSchema.index({ startLocation: '2dsphere' });
+
 // Adding Virtual Properties to our API
 tourSchema.virtual('durationWeeks').get(function () {
   return this.duration / 7;
+});
+
+// virtual populate
+tourSchema.virtual('reviews', {
+  ref: 'Review',
+  foreignField: 'tour',
+  localField: '_id',
 });
 
 // DOCUMENT MIDDLEWARE: runs before .save() and .create()
@@ -149,8 +165,6 @@ tourSchema.pre('save', function (next) {
 //   next();
 // });
 
-// 2) Child Referencing
-
 // this doc refers to ----> document just saved in the database
 // tourSchema.post('save', function (doc, next) {
 //   console.log(doc);
@@ -169,6 +183,7 @@ tourSchema.pre(/^find/, function (next) {
   next();
 });
 
+// 2) Child Referencing
 tourSchema.pre(/^find/, function (next) {
   this.populate({
     path: 'guides',
@@ -188,11 +203,11 @@ tourSchema.post(/^find/, function (docs, next) {
 // AGGREGATION MIDDLEWARE
 // THIS --> it points to current aggregation object
 
-tourSchema.pre('aggregate', function (next) {
-  // how to add another thing in our aggregation pipeline? unshift adds anything in starting of the array
-  this.pipeline().unshift({ $match: { secretTour: { $ne: true } } });
-  console.log(this.pipeline());
-});
+// tourSchema.pre('aggregate', function (next) {
+//   // how to add another thing in our aggregation pipeline? unshift adds anything in starting of the array
+//   this.pipeline().unshift({ $match: { secretTour: { $ne: true } } });
+//   console.log(this.pipeline());
+// });
 
 // creating model
 const Tour = mongoose.model('Tour', tourSchema);

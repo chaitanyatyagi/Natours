@@ -242,6 +242,7 @@
 // --------------------------------------------------Project-------------------------------------------
 
 // 1) IMPORTS
+const path = require('path');
 const express = require('express');
 const app = express();
 const morgan = require('morgan');
@@ -249,11 +250,21 @@ const AppError = require('./utils/appError');
 const globalErrorHandler = require('./controllers/errorController');
 const tourRouter = require('./Routes/tourRoutes');
 const userRouter = require('./Routes/userRoutes');
+const reviewRouter = require('./Routes/reviewRoutes');
+const viewRouter = require('./Routes/viewRoutes');
 const rateLimit = require('express-rate-limit');
 const helmet = require('helmet');
 const mongoSanitize = require('express-mongo-sanitize');
 const xss = require('xss-clean');
 const hpp = require('hpp');
+const cookieParser = require('cookie-parser');
+
+// setting up our pug
+app.set('view engine', 'pug');
+app.set('views', path.join(__dirname, 'views'));
+
+// how to access file from our computer/file system ----> built-in express middleware
+app.use(express.static(path.join(__dirname, 'public')));
 // 2) MIDDLEWARE
 // use of enviornmental variables
 
@@ -264,6 +275,7 @@ const hpp = require('hpp');
 
 // Body parser, reading data from body into req.body
 app.use(express.json());
+app.use(cookieParser());
 
 // Data Sanitization against NoSQL query injection
 app.use(mongoSanitize());
@@ -299,9 +311,6 @@ const limiter = rateLimit({
 });
 app.use('/api', limiter);
 
-// how to access file from our computer/file system ----> built-in express middleware
-app.use(express.static(`${__dirname}/public`));
-
 // app.use((req, res, next) => {
 //   console.log('hello from the middleware');
 //   next();
@@ -313,8 +322,10 @@ app.use((req, res, next) => {
 });
 
 // 3) ROUTES
+app.use('/', viewRouter);
 app.use('/api/v1/users', userRouter);
 app.use('/api/v1/tours', tourRouter);
+app.use('/api/v1/reviews', reviewRouter);
 
 // how to handle faltu routes
 // we have introduced middleware right here because since the req url is not responded by neither of our two routes so hence we have introduced an middleware which will handle this issue of unnecessary routes

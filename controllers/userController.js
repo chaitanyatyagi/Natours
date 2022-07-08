@@ -1,6 +1,7 @@
 const User = require('../models/userModels');
 const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/appError');
+const factory = require('./handlerFactory');
 
 const filterObj = (obj, ...allowedFields) => {
   let newObj = {};
@@ -52,40 +53,40 @@ exports.deleteMe = catchAsync(async (req, res, next) => {
   });
 });
 
-exports.getAllUsers = catchAsync(async (req, res, next) => {
-  const users = await User.find();
-  res.status(200).json({
-    status: 'success',
-    results: users.length,
-    data: {
-      users,
-    },
-  });
-});
+exports.getAllUsers = factory.getAll(User);
+// exports.getAllUsers = catchAsync(async (req, res, next) => {
+//   const users = await User.find();
+//   res.status(200).json({
+//     status: 'success',
+//     results: users.length,
+//     data: {
+//       users,
+//     },
+//   });
+// });
 
-exports.createUsers = (req, res) => {
-  res.status(500).json({
-    status: 'error',
-    message: 'This route is not yet done!',
-  });
-};
+exports.createUsers = factory.createOne(User);
+// exports.createUsers = (req, res) => {
+//   res.status(500).json({
+//     status: 'error',
+//     message: 'This route is not yet done!',
+//   });
+// };
 
-exports.getUser = (req, res) => {
-  res.status(500).json({
-    status: 'error',
-    message: 'This route is not yet done!',
-  });
-};
-exports.updateUser = (req, res) => {
-  res.status(500).json({
-    status: 'error',
-    message: 'This route is not yet done!',
-  });
-};
+exports.getUser = factory.getOne(User);
+// exports.getUser = (req, res) => {
+//   res.status(500).json({
+//     status: 'error',
+//     message: 'This route is not done! Please use signup instead',
+//   });
+// };
+// Do not change password here !
+exports.updateUser = factory.updateOne(User);
 
-exports.deleteUser = (req, res) => {
-  res.status(500).json({
-    status: 'error',
-    message: 'This route is not yet done!',
-  });
+exports.deleteUser = factory.deleteOne(User);
+
+// this is used by user to get his own data from this id of the user currently logged in !!
+exports.getMe = (req, res, next) => {
+  req.params.id = req.user.id;
+  next();
 };

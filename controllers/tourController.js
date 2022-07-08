@@ -1,8 +1,9 @@
 // const fs = require('fs');
 const Tour = require('../models/tourModels');
-const APIFeatures = require('../utils/apiFeatures');
+// const APIFeatures = require('../utils/apiFeatures');
 const AppError = require('../utils/appError');
 const catchAsync = require('../utils/catchAsync');
+const factory = require('./handlerFactory');
 
 // const tours = JSON.parse(
 //   fs.readFileSync(`${__dirname}/../dev-data/data/tours-simple.json`)
@@ -91,243 +92,248 @@ exports.aliasTopTours = (req, res, next) => {
 //   }
 // }
 
-exports.getAllTours = catchAsync(async (req, res, next) => {
-  // console.log(req.requestTime);
+exports.getAllTours = factory.getAll(Tour);
+// exports.getAllTours = catchAsync(async (req, res, next) => {
+//   // console.log(req.requestTime);
 
-  // try {
-  // BUILD QUERY
-  // 1)A FILTERING
-  // how to get rid of those queries that we don't want to implement
-  // const queryObj = { ...req.query };
-  // const excludeFields = ['page', 'sort', 'limit', 'fields'];
-  // excludeFields.forEach((el) => delete queryObj[el]);
+//   // try {
+//   // BUILD QUERY
+//   // 1)A FILTERING
+//   // how to get rid of those queries that we don't want to implement
+//   // const queryObj = { ...req.query };
+//   // const excludeFields = ['page', 'sort', 'limit', 'fields'];
+//   // excludeFields.forEach((el) => delete queryObj[el]);
 
-  // EXECUTE QUERY FOR FILTERING (SIMPLE)
-  // const query = Tour.find({
-  //   queryObj,
-  // });
+//   // EXECUTE QUERY FOR FILTERING (SIMPLE)
+//   // const query = Tour.find({
+//   //   queryObj,
+//   // });
 
-  // const tours = await Tour.find();
+//   // const tours = await Tour.find();
 
-  // now on putting query in our url like ?duration=5&limit=10&sort=1&difficulty=easy    ----->  then our queryObj will consists of {duration:5,difficulty:easy}
+//   // now on putting query in our url like ?duration=5&limit=10&sort=1&difficulty=easy    ----->  then our queryObj will consists of {duration:5,difficulty:easy}
 
-  // 2)B ADVANCE FILTERING
+//   // 2)B ADVANCE FILTERING
 
-  // let queryStr = JSON.stringify(queryObj);
-  // queryStr = queryStr.replace(/\b(gte|gt|lte|lt)\b/g, (match) => `$${match}`);
+//   // let queryStr = JSON.stringify(queryObj);
+//   // queryStr = queryStr.replace(/\b(gte|gt|lte|lt)\b/g, (match) => `$${match}`);
 
-  // EXECUTE QUERY FOR ADVANCE FILTERING
-  // const query = Tour.find(JSON.parse(queryStr));
+//   // EXECUTE QUERY FOR ADVANCE FILTERING
+//   // const query = Tour.find(JSON.parse(queryStr));
 
-  // let query = Tour.find(JSON.parse(queryStr));
+//   // let query = Tour.find(JSON.parse(queryStr));
 
-  // 2) SORTING
-  // if (req.query.sort) {
-  //   const sortBy = req.query.sort.split(',').join(' ');
-  //   query = query.sort(sortBy);
-  // } else {
-  //   query = query.sort('-createdAt');
-  // }
+//   // 2) SORTING
+//   // if (req.query.sort) {
+//   //   const sortBy = req.query.sort.split(',').join(' ');
+//   //   query = query.sort(sortBy);
+//   // } else {
+//   //   query = query.sort('-createdAt');
+//   // }
 
-  // 3) LIMITTING FIELDS
-  // if (req.query.fields) {
-  //   const fields = req.query.fields.split(',').join(' ');
-  //   query = query.select(fields);
-  // } else {
-  //   // include everything except __v
-  //   query = query.select('-__v');
-  // }
+//   // 3) LIMITTING FIELDS
+//   // if (req.query.fields) {
+//   //   const fields = req.query.fields.split(',').join(' ');
+//   //   query = query.select(fields);
+//   // } else {
+//   //   // include everything except __v
+//   //   query = query.select('-__v');
+//   // }
 
-  // 4) PAGINATION
+//   // 4) PAGINATION
 
-  // const page = req.query.page * 1 || 1;
-  // const limit = req.query.limit * 1 || 100;
-  // const skip = (page - 1) * limit;
+//   // const page = req.query.page * 1 || 1;
+//   // const limit = req.query.limit * 1 || 100;
+//   // const skip = (page - 1) * limit;
 
-  // // page=2&limit=10   ----> to get on page 2 this means we want 11-20 docs ...... 1-10(pg1) 11-10(pg2) ..... so inorder to get pg2 we need to skip 10 ...... therefore skip(10) is used
-  // query = query.skip(skip).limit(limit);
+//   // // page=2&limit=10   ----> to get on page 2 this means we want 11-20 docs ...... 1-10(pg1) 11-10(pg2) ..... so inorder to get pg2 we need to skip 10 ...... therefore skip(10) is used
+//   // query = query.skip(skip).limit(limit);
 
-  // now in our code 9 docs are there , what if we select page 4 limit 3 -----> it will give us nothing ..... to fix it --
-  // if (req.query.page) {
-  //   const numTours = await Tour.countDocuments();
-  //   if (skip >= numTours) {
-  //     throw new Error('This page does not exist');
-  //   }
-  // }
+//   // now in our code 9 docs are there , what if we select page 4 limit 3 -----> it will give us nothing ..... to fix it --
+//   // if (req.query.page) {
+//   //   const numTours = await Tour.countDocuments();
+//   //   if (skip >= numTours) {
+//   //     throw new Error('This page does not exist');
+//   //   }
+//   // }
 
-  // EXECUTE QUERY
+//   // EXECUTE QUERY
 
-  // const query = Tour.find({
-  //   queryObj,
-  // });
+//   // const query = Tour.find({
+//   //   queryObj,
+//   // });
 
-  // const tours = await Tour.find()
-  //   .where('duration')
-  // .equals(5) // you can use lte(less than equal) or lt(lessthan) or gt or gte
-  // .where('difficulty')
-  // .equals('easy');
+//   // const tours = await Tour.find()
+//   //   .where('duration')
+//   // .equals(5) // you can use lte(less than equal) or lt(lessthan) or gt or gte
+//   // .where('difficulty')
+//   // .equals('easy');
 
-  // we did so (await thing) coz ---> if we do like const tours = await Tour.find(--//--) then other query needs to wait untill we are done with this one..... now we will first implement all queries then apply await so that , that particular operation will be occuring and none of the queries need to wait !!
-  // const tours = await query;
+//   // we did so (await thing) coz ---> if we do like const tours = await Tour.find(--//--) then other query needs to wait untill we are done with this one..... now we will first implement all queries then apply await so that , that particular operation will be occuring and none of the queries need to wait !!
+//   // const tours = await query;
 
-  const features = new APIFeatures(Tour.find(), req.query)
-    .filter()
-    .sorting()
-    .limitFields()
-    .paginate();
-  const tours = await features.query;
+//   const features = new APIFeatures(Tour.find(), req.query)
+//     .filter()
+//     .sorting()
+//     .limitFields()
+//     .paginate();
+//   const tours = await features.query;
 
-  res.status(200).json({
-    status: 'success',
-    requestedat: req.requestTime,
-    results: tours.length,
-    data: {
-      tours,
-    },
-  });
-  // } catch (error) {
-  //   res.status(400).json({
-  //     status: 'fail',
-  //     message: 'Invalid !!',
-  //   });
-  // }
-});
+//   res.status(200).json({
+//     status: 'success',
+//     requestedat: req.requestTime,
+//     results: tours.length,
+//     data: {
+//       tours,
+//     },
+//   });
+//   // } catch (error) {
+//   //   res.status(400).json({
+//   //     status: 'fail',
+//   //     message: 'Invalid !!',
+//   //   });
+//   // }
+// });
 
-exports.getTour = catchAsync(async (req, res, next) => {
-  console.log(req.params);
-  // const id = req.params.id * 1;
-  // const tour = tours.find((el) => el.id === id);
-  // if (!tour) {
-  //   return res.status(404).json({
-  //     status: 'fail',
-  //     message: 'Invalid ID',
-  //   });
-  // }
-  // try {
-  // populating our query, to get entire user guide data
-  // const tour = await Tour.findById(req.params.id).populate({
-  //   path: 'guides',
-  //   select: '-__v',
-  // });
-  // we are not doing it here coz it's still not visible in get all tours, refer to query middleware
-  const tour = await Tour.findById(req.params.id);
-  // select : this option won't display those things in our user which are subtracted in select
-  // Tour.findById(re.params.id) == Tour.findOne({_id:req.params.id})
+exports.getTour = factory.getOne(Tour, { path: 'reviews' });
+// exports.getTour = catchAsync(async (req, res, next) => {
+//   console.log(req.params);
+//   // const id = req.params.id * 1;
+//   // const tour = tours.find((el) => el.id === id);
+//   // if (!tour) {
+//   //   return res.status(404).json({
+//   //     status: 'fail',
+//   //     message: 'Invalid ID',
+//   //   });
+//   // }
+//   // try {
+//   // populating our query, to get entire user guide data
+//   // const tour = await Tour.findById(req.params.id).populate({
+//   //   path: 'guides',
+//   //   select: '-__v',
+//   // });
+//   // we are not doing it here coz it's still not visible in get all tours, refer to query middleware
+//   const tour = await Tour.findById(req.params.id).populate('reviews');
+//   // select : this option won't display those things in our user which are subtracted in select
+//   // Tour.findById(re.params.id) == Tour.findOne({_id:req.params.id})
 
-  if (!tour) {
-    return next(new AppError('No tour found with that ID', 404));
-  }
+//   if (!tour) {
+//     return next(new AppError('No tour found with that ID', 404));
+//   }
 
-  res.status(200).json({
-    status: 'success',
-    data: {
-      tour,
-    },
-  });
-  // } catch (err) {
-  //   res.status(400).json({
-  //     status: 'fail',
-  //     message: 'Invalid !!',
-  //   });
-  // }
-});
+//   res.status(200).json({
+//     status: 'success',
+//     data: {
+//       tour,
+//     },
+//   });
+//   // } catch (err) {
+//   //   res.status(400).json({
+//   //     status: 'fail',
+//   //     message: 'Invalid !!',
+//   //   });
+//   // }
+// });
 
-exports.createTour = catchAsync(async (req, res, next) => {
-  // try {
-  // one way to store data in database
-  // const newTour = new Tour({})
-  // newTour.save()
+exports.createTour = factory.createOne(Tour);
+// exports.createTour = catchAsync(async (req, res, next) => {
+//   // try {
+//   // one way to store data in database
+//   // const newTour = new Tour({})
+//   // newTour.save()
 
-  // second way to store data in database
-  const newTour = await Tour.create(req.body);
+//   // second way to store data in database
+//   const newTour = await Tour.create(req.body);
 
-  res.status(201).json({
-    status: 'success',
-    data: {
-      tours: newTour,
-    },
-  });
-  // const newID = tours[tours.length - 1].id + 1;
-  // const newTour = Object.assign({ id: newID }, req.body);
+//   res.status(201).json({
+//     status: 'success',
+//     data: {
+//       tours: newTour,
+//     },
+//   });
+//   // const newID = tours[tours.length - 1].id + 1;
+//   // const newTour = Object.assign({ id: newID }, req.body);
 
-  // tours.push(newTour);
+//   // tours.push(newTour);
 
-  // fs.writeFile(
-  //   `${__dirname}/dev-data/data/tours-simple.json`,
-  //   JSON.stringify(tours),
-  //   (err) => {
-  //     res.status(201).json({
-  //       status: 'success',
-  //       data: {
-  //         tours: newTour,
-  //       },
-  //     });
-  //   }
-  // );
-  // } catch (error) {
-  //   res.status(400).json({
-  //     status: 'fail',
-  //     message: error,
-  //   });
-  // }
-});
+//   // fs.writeFile(
+//   //   `${__dirname}/dev-data/data/tours-simple.json`,
+//   //   JSON.stringify(tours),
+//   //   (err) => {
+//   //     res.status(201).json({
+//   //       status: 'success',
+//   //       data: {
+//   //         tours: newTour,
+//   //       },
+//   //     });
+//   //   }
+//   // );
+//   // } catch (error) {
+//   //   res.status(400).json({
+//   //     status: 'fail',
+//   //     message: error,
+//   //   });
+//   // }
+// });
 
-exports.updateTour = catchAsync(async (req, res, next) => {
-  // if (req.params.id * 1 > tours.length) {
-  //   return res.status(404).json({
-  //     status: 'Fail',
-  //     message: 'Invalid ID',
-  //   });
-  // }
-  // try {
-  const tour = await Tour.findByIdAndUpdate(req.params.id, req.body, {
-    new: true,
-    runValidators: true,
-  });
+exports.updateTour = factory.updateOne(Tour);
+// exports.updateTour = catchAsync(async (req, res, next) => {
+//   // if (req.params.id * 1 > tours.length) {
+//   //   return res.status(404).json({
+//   //     status: 'Fail',
+//   //     message: 'Invalid ID',
+//   //   });
+//   // }
+//   // try {
+//   const tour = await Tour.findByIdAndUpdate(req.params.id, req.body, {
+//     new: true,
+//     runValidators: true,
+//   });
 
-  if (!tour) {
-    return next(new AppError('No tour found with that ID', 404));
-  }
+//   if (!tour) {
+//     return next(new AppError('No tour found with that ID', 404));
+//   }
 
-  res.status(200).json({
-    status: 'success',
-    data: {
-      tour,
-    },
-  });
-  // } catch (error) {
-  //   res.status(400).json({
-  //     status: 'fail',
-  //     message: 'Invalid !!',
-  //   });
-  // }
-});
+//   res.status(200).json({
+//     status: 'success',
+//     data: {
+//       tour,
+//     },
+//   });
+//   // } catch (error) {
+//   //   res.status(400).json({
+//   //     status: 'fail',
+//   //     message: 'Invalid !!',
+//   //   });
+//   // }
+// });
 
-exports.deleteTour = catchAsync(async (req, res, next) => {
-  // if (req.params.id * 1 > tours.length) {
-  //   return res.status(404).json({
-  //     status: 'Fail',
-  //     message: 'Invalid ID',
-  //   });
-  // }
-  // try {
-  const tour = await Tour.findByIdAndDelete(req.params.id);
+exports.deleteTour = factory.deleteOne(Tour);
+// exports.deleteTour = catchAsync(async (req, res, next) => {
+//   // if (req.params.id * 1 > tours.length) {
+//   //   return res.status(404).json({
+//   //     status: 'Fail',
+//   //     message: 'Invalid ID',
+//   //   });
+//   // }
+//   // try {
+//   const tour = await Tour.findByIdAndDelete(req.params.id);
 
-  if (!tour) {
-    return next(new AppError('No tour found with that ID', 404));
-  }
+//   if (!tour) {
+//     return next(new AppError('No tour found with that ID', 404));
+//   }
 
-  res.status(204).json({
-    status: 'success',
-    data: null,
-  });
-  // } catch (error) {
-  //   res.status(400).json({
-  //     status: 'fail',
-  //     message: 'Invalid !!',
-  //   });
-  // }
-});
+//   res.status(204).json({
+//     status: 'success',
+//     data: null,
+//   });
+//   // } catch (error) {
+//   //   res.status(400).json({
+//   //     status: 'fail',
+//   //     message: 'Invalid !!',
+//   //   });
+//   // }
+// });
 
 exports.getTourStats = catchAsync(async (req, res, next) => {
   // try {
@@ -427,4 +433,78 @@ exports.getMonthlyPlan = catchAsync(async (req, res, next) => {
   //     message: error,
   //   });
   // }
+});
+
+exports.getToursWithin = catchAsync(async (req, res, next) => {
+  const { distance, latlng, unit } = req.params;
+  const [lat, lng] = latlng.split(',');
+
+  // geospatial query takes radius in the form radians, tthat's why we are converting our radius into radians
+  const radius = unit === 'mi' ? distance / 3963.2 : distance / 6378.1;
+
+  if (!lat || !lng) {
+    next(
+      new AppError(
+        'Please provide latitude annd longitude in format latitude,longitude',
+        400
+      )
+    );
+  }
+
+  // console.log(distance, lat, lng, unit);
+  // this is how we set our distance using geospatial query
+  const tours = await Tour.find({
+    startLocation: {
+      $geoWithin: { $centerSphere: [[lng, lat], radius] },
+    },
+  });
+  res.status(200).json({
+    status: 'success',
+    results: tours.length,
+    data: {
+      data: tours,
+    },
+  });
+});
+
+exports.getDistances = catchAsync(async (req, res, next) => {
+  const { latlng, unit } = req.params;
+  const [lat, lng] = latlng.split(',');
+  const multiplier = unit === 'mi' ? 0.000621371 : 0.001;
+
+  if (!lat || !lng) {
+    next(
+      new AppError(
+        'Please provide latitude annd longitude in format latitude,longitude',
+        400
+      )
+    );
+  }
+
+  const distances = await Tour.aggregate([
+    {
+      $geoNear: {
+        near: {
+          type: 'Point',
+          coordinates: [lng * 1, lat * 1],
+        },
+        distanceField: 'distance',
+        distanceMultiplier: multiplier,
+      },
+    },
+    {
+      // it will only show those fields that we are writting here !!
+      $project: {
+        distance: 1,
+        name: 1,
+      },
+    },
+  ]);
+
+  res.status(200).json({
+    status: 'success',
+    data: {
+      data: distances,
+    },
+  });
 });
